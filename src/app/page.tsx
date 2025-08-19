@@ -1,103 +1,349 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useGameStore } from '@/store/gameStore';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import { validatePlayerName, validateRoomCode } from '@/lib/utils';
+import { GameSettings } from '@/types/game';
+
+export default function HomePage() {
+  const router = useRouter();
+  const { createRoom, joinRoom, isLoading, error } = useGameStore();
+  
+  const [playerName, setPlayerName] = useState('');
+  const [roomCode, setRoomCode] = useState('');
+  const [roundLimit, setRoundLimit] = useState('');
+  const [playerNameError, setPlayerNameError] = useState('');
+  const [roomCodeError, setRoomCodeError] = useState('');
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+  const [activeModal, setActiveModal] = useState<'how-to-play' | 'scoring' | 'winning' | null>(null);
+
+  const handleCreateRoom = async () => {
+    if (!validatePlayerName(playerName)) {
+      setPlayerNameError('Name must be 2-20 characters long');
+      return;
+    }
+    
+    if (!roundLimit) {
+      return;
+    }
+    
+    setPlayerNameError('');
+    
+    const settings: GameSettings = {
+      maxPlayers: 8,
+      clueTimeLimit: 60,
+      votingTimeLimit: 30,
+      totalRounds: roundLimit === 'unlimited' ? null : parseInt(roundLimit)
+    };
+    
+    await createRoom(playerName, settings);
+    router.push('/room/lobby');
+  };
+
+  const handleJoinRoom = async () => {
+    if (!validatePlayerName(playerName)) {
+      setPlayerNameError('Name must be 2-20 characters long');
+      return;
+    }
+    
+    if (!validateRoomCode(roomCode)) {
+      setRoomCodeError('Please enter a valid 6-digit room code');
+      return;
+    }
+    
+    setPlayerNameError('');
+    setRoomCodeError('');
+    await joinRoom(roomCode, playerName);
+    router.push(`/room/${roomCode}`);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h1 
+            className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 mb-4"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            SUS
+          </motion.h1>
+          <p className="text-xl text-gray-600 mb-2">
+            The Ultimate Deception Party Game
+          </p>
+          <p className="text-sm text-gray-500">
+            Can you spot the imposter? Or will you be the one fooling everyone?
+          </p>
+        </motion.div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Game Info Cards */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          {/* How to Play Card */}
+          <motion.div
+            className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:scale-105"
+            whileHover={{ y: -5 }}
+            onClick={() => setActiveModal('how-to-play')}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            <div className="text-center">
+              <div className="text-3xl mb-2">🎮</div>
+              <h3 className="font-semibold text-gray-800 mb-2">How to Play</h3>
+              <p className="text-xs text-gray-600">Click to learn more</p>
+            </div>
+          </motion.div>
+
+          {/* Scoring Card */}
+          <motion.div
+            className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:scale-105"
+            whileHover={{ y: -5 }}
+            onClick={() => setActiveModal('scoring')}
+          >
+            <div className="text-center">
+              <div className="text-3xl mb-2">🧠</div>
+              <h3 className="font-semibold text-gray-800 mb-2">Scoring</h3>
+              <p className="text-xs text-gray-600">Click to learn more</p>
+            </div>
+          </motion.div>
+
+          {/* Winning Card */}
+          <motion.div
+            className="bg-white rounded-xl p-4 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer transform hover:scale-105"
+            whileHover={{ y: -5 }}
+            onClick={() => setActiveModal('winning')}
+          >
+            <div className="text-center">
+              <div className="text-3xl mb-2">🏁</div>
+              <h3 className="font-semibold text-gray-800 mb-2">Winning</h3>
+              <p className="text-xs text-gray-600">Click to learn more</p>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Tab Navigation */}
+        <motion.div
+          className="bg-white rounded-lg shadow-lg overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab('create')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                activeTab === 'create'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Create Room
+            </button>
+            <button
+              onClick={() => setActiveTab('join')}
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+                activeTab === 'join'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Join Room
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* Player Name Input */}
+            <Input
+              label="Your Name"
+              value={playerName}
+              onChange={setPlayerName}
+              placeholder="Enter your name"
+              error={playerNameError}
+              fullWidth
+              required
+              maxLength={20}
+              className="mb-4"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+            {/* Create Room Tab */}
+            {activeTab === 'create' && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Rounds
+                    <span className="text-red-500 ml-1 font-medium" style={{color: '#ef4444'}}>*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={roundLimit}
+                      onChange={(e) => setRoundLimit(e.target.value)}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition-all duration-200 hover:border-gray-400 focus:border-blue-500 appearance-none"
+                      required
+                    >
+                      <option value="">Select rounds...</option>
+                      <option value="4">4 Rounds</option>
+                      <option value="8">8 Rounds</option>
+                      <option value="12">12 Rounds</option>
+                      <option value="unlimited">UNLIMITED</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={handleCreateRoom}
+                  disabled={!playerName.trim() || !roundLimit || isLoading}
+                  fullWidth
+                  size="lg"
+                >
+                  {isLoading ? 'Creating Room...' : 'Create Room'}
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Join Room Tab */}
+            {activeTab === 'join' && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Input
+                  label="Room Code"
+                  value={roomCode}
+                  onChange={setRoomCode}
+                  placeholder="Enter 6-digit code"
+                  error={roomCodeError}
+                  fullWidth
+                  required
+                  maxLength={6}
+                  className="mb-4"
+                />
+                <Button
+                  onClick={handleJoinRoom}
+                  disabled={!playerName.trim() || !roomCode.trim() || isLoading}
+                  fullWidth
+                  size="lg"
+                >
+                  {isLoading ? 'Joining Room...' : 'Join Room'}
+                </Button>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Error Display */}
+        {error && (
+          <motion.div
+            className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {error}
+          </motion.div>
+        )}
+
+        {/* Modals */}
+        {activeModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveModal(null)}
+          >
+            <motion.div
+              className="bg-white rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveModal(null)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Modal Content */}
+              {activeModal === 'how-to-play' && (
+                <div>
+                  <div className="text-center mb-4">
+                    <div className="text-4xl mb-2">🎮</div>
+                    <h2 className="text-2xl font-bold text-gray-800">How to Play</h2>
+                  </div>
+                  <div className="space-y-3 text-gray-600">
+                    <p>• 4–8 players hop into a game</p>
+                    <p>• Each round, one person gets picked as the SUS player (they're left in the dark)</p>
+                    <p>• A secret word or phrase shows up for everyone else</p>
+                    <p>• Each player types a clue — just enough to hint, not enough to give it away 🤫</p>
+                    <p>• The SUS player? Yeah, they gotta fake a clue without any hints 😅</p>
+                    <p>• Once all clues are in, everyone votes on who's acting sus</p>
+                  </div>
+                </div>
+              )}
+
+              {activeModal === 'scoring' && (
+                <div>
+                  <div className="text-center mb-4">
+                    <div className="text-4xl mb-2">🧠</div>
+                    <h2 className="text-2xl font-bold text-gray-800">Scoring</h2>
+                  </div>
+                  <div className="space-y-3 text-gray-600">
+                    <p>• Guess the SUS correctly? <span className="font-semibold text-green-600">+1 point</span></p>
+                    <p>• Wrong guess? <span className="font-semibold text-gray-600">0 points</span></p>
+                    <p>• If the SUS escapes suspicion (receives less than half the votes): <span className="font-semibold text-green-600">+2 points</span></p>
+                    <p>• If the SUS is caught (receives half or more votes): <span className="font-semibold text-gray-600">0 points</span></p>
+                  </div>
+                </div>
+              )}
+
+              {activeModal === 'winning' && (
+                <div>
+                  <div className="text-center mb-4">
+                    <div className="text-4xl mb-2">🏁</div>
+                    <h2 className="text-2xl font-bold text-gray-800">Winning</h2>
+                  </div>
+                  <div className="space-y-3 text-gray-600">
+                    <p>• Play for a set number of rounds</p>
+                    <p>• The player with the most points at the end wins!</p>
+                    <p className="text-sm text-gray-500 mt-4">
+                      Choose from 4, 8, 12 rounds, or play unlimited until someone reaches 10 points!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
