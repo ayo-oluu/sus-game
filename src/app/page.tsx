@@ -301,11 +301,11 @@ export default function HomePage() {
                   </div>
                   <div className="space-y-3 text-gray-600">
                     <p>• 4–8 players hop into a game</p>
-                    <p>• Each round, one person gets picked as the SUS player (they're left in the dark)</p>
+                    <p>• Each round, one person gets picked as the SUS player (they&apos;re left in the dark)</p>
                     <p>• A secret word or phrase shows up for everyone else</p>
                     <p>• Each player types a clue — just enough to hint, not enough to give it away 🤫</p>
                     <p>• The SUS player? Yeah, they gotta fake a clue without any hints 😅</p>
-                    <p>• Once all clues are in, everyone votes on who's acting sus</p>
+                    <p>• Once all clues are in, everyone votes on who&apos;s acting sus</p>
                   </div>
                 </div>
               )}

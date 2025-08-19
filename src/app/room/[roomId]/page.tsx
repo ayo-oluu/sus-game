@@ -66,7 +66,7 @@ const CluePhase = ({
   secretWord: string;
 }) => {
   const [clue, setClue] = useState(currentClue);
-  const [isEditing, setIsEditing] = useState(false);
+
   
   const hasSubmitted = currentPlayer?.clueSubmitted;
   const canEdit = !hasSubmitted;
@@ -75,14 +75,12 @@ const CluePhase = ({
   const handleSubmit = () => {
     if (clue.trim()) {
       onSubmitClue(clue);
-      setIsEditing(false);
     }
   };
   
   const handleEdit = () => {
     if (clue.trim()) {
       onEditClue(clue);
-      setIsEditing(false);
     }
   };
   
@@ -190,7 +188,7 @@ const CluePhase = ({
                 </span>
               </div>
               {player.clueSubmitted && player.clue && (
-                <p className="text-sm text-gray-600 mt-2 italic">"{player.clue}"</p>
+                <p className="text-sm text-gray-600 mt-2 italic">&quot;{player.clue}&quot;</p>
               )}
             </div>
           ))}
@@ -224,7 +222,7 @@ const VotingPhase = ({ players, onVote, currentPlayer }: {
             className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
           >
             <div className="font-medium text-gray-800 mb-2">{player.name}</div>
-            <div className="text-gray-600 italic">"{player.clue || 'No clue submitted'}"</div>
+            <div className="text-gray-600 italic">&quot;{player.clue || 'No clue submitted'}&quot;</div>
           </div>
         ))}
       </div>
@@ -397,7 +395,7 @@ export default function RoomPage() {
   const [copyMessage, setCopyMessage] = useState('');
   const isClient = typeof window !== 'undefined';
 
-  const roomId = params.roomId as string;
+
 
   useEffect(() => {
     if (!currentRoom || !currentPlayer) {
@@ -607,8 +605,7 @@ export default function RoomPage() {
     );
   }
 
-  const isHost = currentPlayer.isHost;
-  const isSUS = currentPlayer.isSUS;
+
 
   return (
     <div className="min-h-screen p-4">
